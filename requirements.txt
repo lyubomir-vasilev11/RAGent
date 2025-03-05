@@ -13,3 +13,4 @@ tavily-python
 langchain-huggingface
 python-dotenv
 streamlit
+langchain-huggingface

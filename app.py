@@ -1,13 +1,17 @@
 import time
 from vector_db import VectorStore
-from utils import call_claude_rag, call_tavily_web_search, assess_confidence, synthesize_information
+from utils import call_rag, call_tavily_web_search, assess_confidence, synthesize_information
 import logging
 
-def main(user_query, initialize=False, pdf_path=None, dry_run=False):  # Added dry_run parameter
-    logging.debug(f"[main] Starting process with query: {user_query[:100]}...")
-    if dry_run:
-        logging.info("[main] Running in dry run mode")
-    
+def main(user_query, initialize=False, pdf_path=None, dry_run=False):
+    if initialize:
+        logging.debug("[main] Initialization mode.")
+    elif user_query is not None:
+        logging.debug(f"[main] Starting process with query: {user_query[:100]}...")
+    else:
+        logging.debug("[main] No user query provided.")
+
+    # Continue with initialization branch
     vector_store = VectorStore(persist_directory="./chroma_db")
     
     if initialize and pdf_path:
@@ -21,12 +25,11 @@ def main(user_query, initialize=False, pdf_path=None, dry_run=False):  # Added d
         logging.error("[main] PDF path not provided for initialization")
         return "Please provide a PDF file to initialize the system."
     
-    logging.debug("[main] Starting query processing")
+    # Process the user query if provided
     internal_response = vector_store.search(user_query)
     
     logging.debug("[main] Getting RAG response")
-    rag_response = call_claude_rag(user_query, internal_response, dry_run)
-    # time.sleep(1)
+    rag_response = call_rag(user_query, internal_response, dry_run)
     
     if isinstance(rag_response, list):
         rag_response = " ".join(str(item) for item in rag_response)
